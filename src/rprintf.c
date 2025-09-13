@@ -85,7 +85,6 @@ static void outs( charptr lp)
    len = strlen( lp);
    padding( left_flag);
    }
-
 /*---------------------------------------------------*/
 /*                                                   */
 /* This routine moves a number to the output buffer  */

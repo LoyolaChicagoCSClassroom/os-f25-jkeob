@@ -1,0 +1,52 @@
+#include <stdint.h>
+#include "console.h"
+
+#define VGA_MEM      ((volatile uint8_t*)0xB8000)
+#define VGA_COLS     80
+#define VGA_ROWS     25
+#define ATTR_DEFAULT 0x07  // light grey on black
+
+static int cursor = 0;     // 0..(80*25-1)
+
+static void scroll_if_needed(void) {
+    if (cursor < VGA_COLS * VGA_ROWS) return;
+    for (int row = 1; row < VGA_ROWS; row++) {
+        for (int i = 0; i < VGA_COLS * 2; i++) {
+            VGA_MEM[(row - 1) * VGA_COLS * 2 + i] = VGA_MEM[row * VGA_COLS * 2 + i];
+        }
+    }
+    for (int col = 0; col < VGA_COLS; col++) {
+        int off = (VGA_ROWS - 1) * VGA_COLS * 2 + col * 2;
+        VGA_MEM[off]     = ' ';
+        VGA_MEM[off + 1] = ATTR_DEFAULT;
+    }
+    cursor = (VGA_ROWS - 1) * VGA_COLS;
+}
+
+static void newline(void) {
+    cursor = (cursor / VGA_COLS + 1) * VGA_COLS;
+    scroll_if_needed();
+}
+
+void console_clear(void) {
+    for (int i = 0; i < VGA_COLS * VGA_ROWS; i++) {
+        VGA_MEM[2*i]     = ' ';
+        VGA_MEM[2*i + 1] = ATTR_DEFAULT;
+    }
+    cursor = 0;
+}
+
+void console_putc(int ch) {
+    if (ch == '\r') return;      // ignore CR
+    if (ch == '\n') { newline(); return; }
+    int off = cursor * 2;
+    VGA_MEM[off]     = (uint8_t)ch;
+    VGA_MEM[off + 1] = ATTR_DEFAULT;
+    cursor++;
+    scroll_if_needed();
+}
+
+int putc(int ch) {               // matches int (*)(int) for esp_printf
+    console_putc(ch);
+    return ch;
+}
