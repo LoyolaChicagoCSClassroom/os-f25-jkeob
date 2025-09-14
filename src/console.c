@@ -8,45 +8,62 @@
 
 static int cursor = 0;     // 0..(80*25-1)
 
-static void scroll_if_needed(void) {
-    if (cursor < VGA_COLS * VGA_ROWS) return;
-    for (int row = 1; row < VGA_ROWS; row++) {
-        for (int i = 0; i < VGA_COLS * 2; i++) {
-            VGA_MEM[(row - 1) * VGA_COLS * 2 + i] = VGA_MEM[row * VGA_COLS * 2 + i];
+static void scroll(void){
+
+    if (cursor < VGA_COLS * VGA_ROWS){
+	return;
+    }else 
+	for(int row = 1; row < VGA_ROWS; row++){
+		for (int cols; cols < VGA_COLS; cols++){
+	            VGA_MEM[(row - 1) * VGA_COLS * 2 + i] = VGA_MEM[row * VGA_COLS * 2 + i];
+		}
+
+	}
+	for (int col = 0; col < VGA_COLS; col++) {
+            int off = (VGA_ROWS - 1) * VGA_COLS * 2 + col * 2;
+            VGA_MEM[off]     = ' ';
+            VGA_MEM[off + 1] = ATTR_DEFAULT;
         }
-    }
-    for (int col = 0; col < VGA_COLS; col++) {
-        int off = (VGA_ROWS - 1) * VGA_COLS * 2 + col * 2;
-        VGA_MEM[off]     = ' ';
-        VGA_MEM[off + 1] = ATTR_DEFAULT;
-    }
-    cursor = (VGA_ROWS - 1) * VGA_COLS;
+        cursor = (VGA_ROWS - 1) * VGA_COLS;
+
+
 }
 
-static void newline(void) {
-    cursor = (cursor / VGA_COLS + 1) * VGA_COLS;
-    scroll_if_needed();
+
+
+static void newline(void) { 
+
+    cursor = (cursor / VGA_COLS + 1) * VGA_COLS; 
+    scroll(); 
+
 }
 
-void console_clear(void) {
-    for (int i = 0; i < VGA_COLS * VGA_ROWS; i++) {
-        VGA_MEM[2*i]     = ' ';
-        VGA_MEM[2*i + 1] = ATTR_DEFAULT;
+
+void console_putc(int ch){
+
+
+    if (ch == '\n'){
+        newLine();
+	return();
     }
-    cursor = 0;
-}
+    if (ch == '\r'){
+        return;
+    }
 
-void console_putc(int ch) {
-    if (ch == '\r') return;      // ignore CR
-    if (ch == '\n') { newline(); return; }
     int off = cursor * 2;
-    VGA_MEM[off]     = (uint8_t)ch;
+    VGA_MEM[off] = (uint8_t)ch;
     VGA_MEM[off + 1] = ATTR_DEFAULT;
     cursor++;
-    scroll_if_needed();
+    scroll();
+
+
 }
 
-int putc(int ch) {               // matches int (*)(int) for esp_printf
+
+int putc(int ch){
+
     console_putc(ch);
     return ch;
 }
+
+
