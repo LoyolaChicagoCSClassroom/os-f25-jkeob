@@ -14,8 +14,8 @@ static void scroll(void){
 	return;
     }else 
 	for(int row = 1; row < VGA_ROWS; row++){
-		for (int cols; cols < VGA_COLS; cols++){
-	            VGA_MEM[(row - 1) * VGA_COLS * 2 + i] = VGA_MEM[row * VGA_COLS * 2 + i];
+		for (int cols = 0; cols < VGA_COLS; cols++){
+	            VGA_MEM[(row - 1) * VGA_COLS * 2 + cols] = VGA_MEM[row * VGA_COLS * 2 + cols];
 		}
 
 	}
@@ -44,7 +44,7 @@ void console_putc(int ch){
 
     if (ch == '\n'){
         newLine();
-	return();
+	   return;
     }
     if (ch == '\r'){
         return;
