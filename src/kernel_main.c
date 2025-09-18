@@ -15,19 +15,25 @@ uint8_t inb (uint16_t _port) {
 /* ------------------------------------------------------------------
    Kernel entry point
    ------------------------------------------------------------------ */
-void kernel(void) {
-    // show that your kernel + rprintf are alive
+void main() {
     puts("Hi!\n");
     puts("Keyboard polling demo starting...\n");
 
-    // main keyboard loop
     while (1) {
-        uint8_t status = inb(0x64);   // read status register
-        if (status & 1) {             // if output buffer full
-            uint8_t scancode = inb(0x60);   // read key from data port
-            puts("Key pressed: %02x\n", scancode);
+        // poll keyboard
+        uint8_t status = inb(0x64);
+        if (status & 1) {
+            uint8_t scancode = inb(0x60);
+            esp_printf(console_putc, "Key pressed: %02x\n", scancode);
         }
 
-        __asm__ __volatile__("hlt");  // idle until next interrupt/IO
+        // crude delay loop (~1 second depending on CPU speed/QEMU)
+        for (volatile unsigned long i = 0; i < 100000000; i++) {
+            // just waste time
+        }
+
+        // heartbeat message
+        puts("tick...\n");
+
     }
 }

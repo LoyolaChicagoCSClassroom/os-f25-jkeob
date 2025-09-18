@@ -8,46 +8,43 @@
 
 static int cursor = 0;     // 0..(80*25-1)
 
-static void scroll(void){
-
-    if (cursor < VGA_COLS * VGA_ROWS){
-	return;
-    } else { 
-	for(int row = 1; row < VGA_ROWS; row++){
-		for (int cols = 0; cols < VGA_COLS; cols++){
-	            VGA_MEM[(row - 1) * VGA_COLS * 2 + cols] = VGA_MEM[row * VGA_COLS * 2 + cols];
-		}
-
-	}
-	for (int col = 0; col < VGA_COLS; col++) {
+static void scroll(void) {
+    if (cursor < VGA_COLS * VGA_ROWS) {
+        return;
+    } else {
+        for (int row = 1; row < VGA_ROWS; row++) {
+            for (int col = 0; col < VGA_COLS; col++) {
+                VGA_MEM[(row - 1) * VGA_COLS * 2 + col * 2] =
+                    VGA_MEM[row * VGA_COLS * 2 + col * 2];
+                VGA_MEM[(row - 1) * VGA_COLS * 2 + col * 2 + 1] =
+                    VGA_MEM[row * VGA_COLS * 2 + col * 2 + 1];
+            }
+        }
+        for (int col = 0; col < VGA_COLS; col++) {
             int off = (VGA_ROWS - 1) * VGA_COLS * 2 + col * 2;
             VGA_MEM[off]     = ' ';
             VGA_MEM[off + 1] = ATTR_DEFAULT;
         }
         cursor = (VGA_ROWS - 1) * VGA_COLS;
-     }
-
-}
-
-
-
-static void newline(void) { 
-
-    cursor = (cursor / VGA_COLS + 1) * VGA_COLS; 
-    scroll(); 
-
-}
-
-
-void console_putc(int ch){
-
-
-    if (ch == '\n'){
-        newline();
-	   return;
     }
-    if (ch == '\r'){
-        return;
+}
+
+static void newline(void) {
+    cursor = (cursor / VGA_COLS + 1) * VGA_COLS;
+    scroll();
+}
+
+/**
+ * console_putc - print a single character to the VGA text buffer
+ * Returns the character (int) so it matches printf-style expectations
+ */
+int console_putc(int ch) {
+    if (ch == '\n') {
+        newline();
+        return ch;
+    }
+    if (ch == '\r') {
+        return ch;
     }
 
     int off = cursor * 2;
@@ -55,23 +52,21 @@ void console_putc(int ch){
     VGA_MEM[off + 1] = ATTR_DEFAULT;
     cursor++;
     scroll();
-
-
-}
-
-
-int putc(int ch){
-
-    console_putc(ch);
     return ch;
 }
 
+/**
+ * putc - stdio-like wrapper (just calls console_putc)
+ */
+int putc(int ch) {
+    return console_putc(ch);
+}
 
-// simple string printer
+/**
+ * puts - print a null-terminated string to VGA
+ */
 void puts(const char *s) {
     while (*s) {
         console_putc(*s++);
     }
 }
-
-
