@@ -1,18 +1,11 @@
 #include <stdint.h>
+#include "console.h"
+#include "rprintf.h"   // header for your rprintf functions
 
-__attribute__((section(".multiboot"), used, aligned(8)))
-const unsigned int multiboot_header[] = {
-    0xe85250d6,   // magic
-    0,            // arch (i386)
-    24,           // total header length (includes end tag)
-    -(0xe85250d6 + 0 + 24), // checksum
-    0,            // end-tag type
-    8             // end-tag size
-};
+#define MULTIBOOT2_HEADER_MAGIC         0xe85250d6
 
-/* ------------------------------------------------------------------
-   Read a byte from I/O port
-   ------------------------------------------------------------------ */
+const unsigned int multiboot_header[]  __attribute__((section(".multiboot"))) = {MULTIBOOT2_HEADER_MAGIC, 0, 16, -(16+MULTIBOOT2_HEADER_MAGIC), 0, 12};
+
 uint8_t inb (uint16_t _port) {
     uint8_t rv;
     __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
@@ -22,27 +15,19 @@ uint8_t inb (uint16_t _port) {
 /* ------------------------------------------------------------------
    Kernel entry point
    ------------------------------------------------------------------ */
-void main() {
-    unsigned short *vram = (unsigned short*)0xb8000; // VGA text buffer
-    const unsigned char color = 7; // gray on black
+void kernel(void) {
+    // show that your kernel + rprintf are alive
+    puts("Hi!\n");
+    puts("Keyboard polling demo starting...\n");
 
-    // Write "Hi!" to the top-left of the screen
-    vram[0] = ((unsigned short)color << 8) | 'H';
-    vram[1] = ((unsigned short)color << 8) | 'i';
-    vram[2] = ((unsigned short)color << 8) | '!';
-
-    // Halt loop to save CPU when idle
-    for (;;) {
-        __asm__ __volatile__("hlt");
-    }
-
-    // (Optional: keyboard polling — currently unreachable
-    // because of the infinite loop above)
+    // main keyboard loop
     while (1) {
-        uint8_t status = inb(0x64);
-        if (status & 1) {
-            uint8_t scancode = inb(0x60);
-            (void)scancode; // silence unused warning
+        uint8_t status = inb(0x64);   // read status register
+        if (status & 1) {             // if output buffer full
+            uint8_t scancode = inb(0x60);   // read key from data port
+            puts("Key pressed: %02x\n", scancode);
         }
+
+        __asm__ __volatile__("hlt");  // idle until next interrupt/IO
     }
 }

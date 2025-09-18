@@ -67,3 +67,11 @@ int putc(int ch){
 }
 
 
+// simple string printer
+void puts(const char *s) {
+    while (*s) {
+        console_putc(*s++);
+    }
+}
+
+

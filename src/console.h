@@ -2,4 +2,5 @@
 #define CONSOLE_H
 void console_putc(int ch);
 int  putc(int ch); 
+void puts(const char *s);
 #endif
