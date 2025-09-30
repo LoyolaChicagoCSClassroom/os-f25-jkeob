@@ -66,14 +66,7 @@ void main() {
                 continue;
             }
             esp_printf(console_putc, "Key pressed: %c\n", keyboard_map[scancode]);
-}        // crude delay loop (~1 second depending on CPU speed/QEMU)
-      //  for (volatile unsigned long i = 0; i < 100000000; i++) {
-            // just waste time
-    //    }
+}        
 
-        // heartbeat message
-  //      puts("tick...\n");
-//
- //   }
 }
 }
