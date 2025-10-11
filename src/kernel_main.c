@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "console.h"
 #include "rprintf.h"   // header for your rprintf functions
+#include "page.h"
+
 
 #define MULTIBOOT2_HEADER_MAGIC         0xe85250d6
 
@@ -53,14 +55,30 @@ unsigned char keyboard_map[128] =
 /* ------------------------------------------------------------------
    Kernel entry point
    ------------------------------------------------------------------ */
+
 void main() {
     puts("Hi!\n");
     puts("Keyboard polling demo starting...\n");
 
+    init_pfa_list();
+
+    struct list_element *a = allocate_physical_pages(3);
+    for (struct list_element *t = a; t; t = t->next) {
+        esp_printf(console_putc, "alloc phys=%08x\n",
+                   (uint32_t)(uintptr_t)page_addr(t));   // 32-bit target
+    }
+
+    free_physical_pages(a);
+
+    struct list_element *b = allocate_physical_pages(LIST_SIZE + 10);
+    esp_printf(console_putc, "alloc_all head phys=%08x\n",
+               b ? (uint32_t)(uintptr_t)page_addr(b) : 0u);
+    free_physical_pages(b);
+
     while (1) {
-        // poll keyboard
         uint8_t status = inb(0x64);
         if (status & 1) {
+<<<<<<< HEAD
             uint8_t scancode = inb(0x60);
             if (scancode > 128) {
                 continue;
@@ -69,4 +87,10 @@ void main() {
 }        
 
 }
+=======
+            uint8_t sc = inb(0x60);
+            if (sc <= 128) esp_printf(console_putc, "Key pressed: %c\n", keyboard_map[sc]);
+        }
+    }
+>>>>>>> a30c76c (add page allocator (page.c/.h), hook into kernel_main, print phys addrs)
 }
