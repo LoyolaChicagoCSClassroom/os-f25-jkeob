@@ -27,6 +27,8 @@ OBJS = \
         rprintf.o \
 	console.o \
 	page.o \
+	mpages.o \
+
 # Make sure to keep a blank line here after OBJS list
 
 OBJ = $(patsubst %,$(ODIR)/%,$(OBJS))
