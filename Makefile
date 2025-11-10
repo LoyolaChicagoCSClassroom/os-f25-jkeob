@@ -23,21 +23,24 @@ ODIR = obj
 SDIR = src
 
 OBJS = \
-	kernel_main.o \
+        kernel_main.o \
         rprintf.o \
-	console.o \
-	page.o \
-	mpages.o \
+        console.o \
+        page.o \
+        mpages.o \
+        fat.o \
+        ide.o
 
 # Make sure to keep a blank line here after OBJS list
 
 OBJ = $(patsubst %,$(ODIR)/%,$(OBJS))
 
 $(ODIR)/%.o: $(SDIR)/%.c
-	$(CC) $(CFLAGS) -c -g -o $@ $^
+	$(CC) $(CFLAGS) -I$(SDIR) -c -g -o $@ $^
 
 $(ODIR)/%.o: $(SDIR)/%.s
-	$(CC) $(CFLAGS) -c -g -o $@ $^
+	nasm -f elf32 -g -o $@ $^
+
 
 
 all: bin rootfs.img
@@ -52,7 +55,7 @@ obj:
 rootfs.img:
 	dd if=/dev/zero of=rootfs.img bs=1M count=32
 	$(GRUBLOC)grub-mkimage -p "(hd0,msdos1)/boot" -o grub.img -O i386-pc normal biosdisk multiboot multiboot2 configfile fat exfat part_msdos
-	dd if=$(BOOTIMG) of=rootfs.img conv=notrunc
+		dd if=$(BOOTIMG) of=rootfs.img conv=notrunc
 	dd if=grub.img of=rootfs.img conv=notrunc bs=512 seek=1 #########
 	echo 'start=2048, type=83, bootable' | sfdisk rootfs.img
 	mkfs.vfat --offset 2048 -F16 rootfs.img

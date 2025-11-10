@@ -8,6 +8,7 @@
 /*---------------------------------------------------*/
 
 #include "rprintf.h"
+#include "console.h"
 /*---------------------------------------------------*/
 /* The purpose of this routine is to output data the */
 /* same as the standard printf function without the  */
@@ -280,3 +281,10 @@ try_next:
    }
 
 /*---------------------------------------------------*/
+
+void rprintf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    esp_vprintf(console_putc, (char*)fmt, args);
+    va_end(args);
+}

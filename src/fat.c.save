@@ -1,0 +1,19 @@
+#include "rprintf.h"   
+#include "ide.h"       
+#include "fat.h"      
+#include <stdint.h> 
+#include <string.h>    
+
+#define SECTOR_SIZE 512
+
+static unsigned char bootSector[SECTOR_SIZE];
+static unsigned char fat_table[8 * SECTOR_SIZE];   // example size, adjust as needed
+static unsigned int root_sector;                   // computed later
+
+static struct boot_sector *bs;  // pointer to interpret boot sector fields
+
+
+
+int fatInit(void);
+int fatOpen(const char *filename);
+int fatRead(char *buffer);
